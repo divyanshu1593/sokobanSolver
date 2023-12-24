@@ -72,7 +72,6 @@ class Board {
 
         let cur = this.state[this.playerPos.i][this.playerPos.j];
         let nextInDir = this.state[this.playerPos.i + a][this.playerPos.j + b];
-        let n2nInDir = this.state[this.playerPos.i + (2 * a)][this.playerPos.j + (2 * b)];
 
         if (nextInDir == Board.EMPTY_SPACE || nextInDir == Board.VALID_SPACE){
             if (cur == Board.PLAYER_AT_EMPTY_SPACE){
@@ -88,9 +87,17 @@ class Board {
 
             this.playerPos.i += a;
             this.playerPos.j += b;
-        } else if (nextInDir == Board.WALL){
+            
+            return true;
+        }
+        
+        if (nextInDir == Board.WALL){
             return ;
-        } else if (nextInDir == Board.BOX_AT_EMPTY_SPACE || nextInDir == Board.BOX_AT_VALID_SPACE){
+        }
+        
+        if (nextInDir == Board.BOX_AT_EMPTY_SPACE || nextInDir == Board.BOX_AT_VALID_SPACE){
+
+            let n2nInDir = this.state[this.playerPos.i + (2 * a)][this.playerPos.j + (2 * b)];
             if (n2nInDir == Board.EMPTY_SPACE || n2nInDir == Board.VALID_SPACE){
                 if (n2nInDir == Board.EMPTY_SPACE){
                     this.state[this.playerPos.i + (2 * a)][this.playerPos.j + (2 * b)] = Board.BOX_AT_EMPTY_SPACE;
@@ -112,9 +119,11 @@ class Board {
 
                 this.playerPos.i += a;
                 this.playerPos.j += b;
-            } else {
-                return ;
+
+                return true;
             }
+
+            return ;
         }
     }
 

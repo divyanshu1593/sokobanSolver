@@ -1,41 +1,52 @@
 const Board = require('./board.js');
+const levels = require('./levels.js');
+const prompt = require('prompt-sync')({sigint: true});
 
 class Search {
-    static search(board, movesMade){
+    static search(board, movesMade, visitedState){
+        board.show();
+        console.log();
         if (board.isFinalState()) return movesMade;
+        if (board.isDeadState()){
+            console.log("dead state detacted");
+            return null;
+        }
+
+        let hashValue = JSON.stringify(board.state);
+        if (visitedState.has(hashValue)){
+            console.log("same position reached");
+            return null;
+        }
+        visitedState.add(hashValue);
 
         let possibleMoves = [];
         let possibleDirs = ['w', 'a', 's', 'd'];
-
-        let max = -Infinity;
 
         for (let dir of possibleDirs){
             let boardClone = structuredClone(board);
             boardClone.__proto__ = board.__proto__;
 
             if (boardClone.move(dir)){
-                let cost = Search.#evaluate(boardClone.state);
-                max = Math.max(max, cost);
-                possibleMoves.push([cost, dir]);
+                let evaluation = Search.#evaluate(boardClone.state);
+                possibleMoves.push([evaluation, dir]);
             }
         }
 
-        let indexesOfCandidateMoves = [];
-        for (let i = 0; i < possibleMoves.length; i++){
-            if (possibleMoves[i][0] == max){
-                indexesOfCandidateMoves.push(i);
-            }
+        possibleMoves.sort((a, b) => b[0] - a[0]);
+
+        for (let move of possibleMoves){
+            let cloneBoard = structuredClone(board);
+            cloneBoard.__proto__ = board.__proto__;
+
+            cloneBoard.move(move[1]);
+            let movesMadeClone = movesMade.map(val => val);
+            movesMadeClone.push(move[1]);
+
+            let result = Search.search(cloneBoard, movesMadeClone, visitedState);
+            if (result) return result;
         }
 
-        let index = Math.floor(Math.random() * ((indexesOfCandidateMoves.length - 1) + 1));
-        let moveDir = possibleMoves[indexesOfCandidateMoves[index]][1];
-
-        board.move(moveDir);
-        movesMade.push(moveDir);
-        console.log();
-        board.show();
-
-        return Search.search(board, movesMade);
+        return null;
     }
 
     static #evaluate(state){
@@ -55,32 +66,23 @@ class Search {
 
         return evaluation;
     }
+
+    static animateMoves(board, moves){
+        for (let mv of moves){
+            console.clear();
+            board.show();
+            console.log();
+            prompt("press any key to continue");
+            board.move(mv);
+        }
+
+        console.clear();
+        board.show();
+        console.log(moves.length);
+    }
 }
 
-let levels = {
-    level1: [
-        [0, 0, 1, 1, 1, 0, 0, 0],
-        [0, 0, 1, 4, 1, 0, 0, 0],
-        [0, 0, 1, 0, 1, 1, 1, 1],
-        [1, 1, 1, 2, 0, 2, 4, 1],
-        [1, 4, 0, 2, 5, 1, 1, 1],
-        [1, 1, 1, 1, 2, 1, 0, 0],
-        [0, 0, 0, 1, 4, 1, 0, 0],
-        [0, 0, 0, 1, 1, 1, 0, 0]
-    ],
-
-    level2: [
-        [1, 1, 1, 1, 1, 0, 0, 0, 0],
-        [1, 5, 0, 0, 1, 0, 0, 0, 0],
-        [1, 0, 2, 2, 1, 0, 1, 1, 1],
-        [1, 0, 2, 0, 1, 0, 1, 4, 1],
-        [1, 1, 1, 0, 1, 1, 1, 4, 1],
-        [0, 1, 1, 0, 0, 0, 0, 4, 1],
-        [0, 1, 0, 0, 0, 1, 0, 0, 1],
-        [0, 1, 0, 0, 0, 1, 1, 1, 1],
-        [0, 1, 1, 1, 1, 1, 0, 0, 0],
-    ],
-}
-
-let ans = Search.search(new Board(levels.level1), []);
+let ans = Search.search(new Board(levels.level2), [], new Set());
 console.log(ans);
+
+Search.animateMoves(new Board(levels.level2), ans);

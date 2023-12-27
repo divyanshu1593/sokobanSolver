@@ -20,6 +20,45 @@ class Board {
     static PLAYER_AT_EMPTY_SPACE = 5;
     static PLAYER_AT_VALID_SPACE = 6;
 
+    isDeadState(){
+        for (let i = 0; i < this.state.length - 1; i++){
+            for (let j = 0; j < this.state[0].length - 1; j++){
+                if (this.state[i][j] == Board.WALL || this.state[i][j] == Board.BOX_AT_EMPTY_SPACE || this.state[i][j] == Board.BOX_AT_VALID_SPACE){
+                    let flag = false;
+                    let t1, t2, t3;
+
+                    if (this.state[i][j] == Board.BOX_AT_EMPTY_SPACE){
+                        flag = true;
+                    }
+
+                    if (this.state[i + 1][j] == Board.BOX_AT_EMPTY_SPACE){
+                        flag = true;
+                        t1 = true;
+                    } else if (this.state[i + 1][j] == Board.BOX_AT_VALID_SPACE || this.state[i + 1][j] == Board.WALL){
+                        t1 = true;
+                    }
+
+                    if (this.state[i][j + 1] == Board.BOX_AT_EMPTY_SPACE){
+                        flag = true;
+                        t2 = true;
+                    } else if (this.state[i][j + 1] == Board.WALL || this.state[i][j + 1] == Board.BOX_AT_VALID_SPACE){
+                        t2 = true;
+                    }
+
+                    if (this.state[i + 1][j + 1] == Board.BOX_AT_EMPTY_SPACE){
+                        flag = true;
+                        t3 = true;
+                    } else if (this.state[i + 1][j + 1] == Board.WALL || this.state[i + 1][j + 1] == Board.BOX_AT_VALID_SPACE){
+                        t3 = true;
+                    }
+
+                    if (t1 && t2 && t3 && flag) return true;
+                }
+            }
+        }
+        return false;
+    }
+
     static #findPlayerPosition(state){
         for (let i = 0; i < state.length; i++){
             for (let j = 0; j < state[0].length; j++){
@@ -45,7 +84,7 @@ class Board {
                     temp.push(9633);
                 } else if (j == Board.BOX_AT_VALID_SPACE){
                     temp.push(9632);
-                } else if (j == Board.PLAYER_AT_EMPTY_SPACE || j == PLAYER_AT_VALID_SPACE){
+                } else if (j == Board.PLAYER_AT_EMPTY_SPACE || j == Board.PLAYER_AT_VALID_SPACE){
                     temp.push(64);
                 }
                 temp.push(32)

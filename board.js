@@ -9,7 +9,7 @@ class Board {
         // 5 means the player
         // 6 means the player at a valid empty 
         this.state = initState;
-        this.playerPos = Board.#findPlayerPosition(initState);
+        this.playerPos = Board.findPlayerPosition(initState);
     }
 
     static EMPTY_SPACE = 0;
@@ -59,7 +59,7 @@ class Board {
         return false;
     }
 
-    static #findPlayerPosition(state){
+    static findPlayerPosition(state){
         for (let i = 0; i < state.length; i++){
             for (let j = 0; j < state[0].length; j++){
                 if (state[i][j] == Board.PLAYER_AT_EMPTY_SPACE || state[i][j] == Board.PLAYER_AT_VALID_SPACE){

@@ -27,7 +27,7 @@ class Search {
             boardClone.__proto__ = board.__proto__;
 
             if (boardClone.move(dir)){
-                let evaluation = Search.#evaluate(boardClone.state);
+                let evaluation = Search.#evaluate(boardClone.state, board.state, 5, 5, 5);
                 possibleMoves.push([evaluation, dir]);
             }
         }
@@ -49,20 +49,80 @@ class Search {
         return null;
     }
 
-    static #evaluate(state){
+    static #evaluate(state, prevState, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight){
         let evaluation = 0;
-        let punishmentWeight = -1;
-        let rewardWeight = 1;
+        let boxPlaced = 0;
+        let boxPositions = [];
+        let validPositions = [];
 
-        for (let i of state){
-            for (let j of i){
-                if (j == Board.BOX_AT_EMPTY_SPACE){
-                    evaluation += punishmentWeight;
-                } else if (j == Board.BOX_AT_VALID_SPACE){
-                    evaluation += rewardWeight;
+        for (let i = 0; i < state.length; i++){
+            for (let j = 0; j < state[0].length; j++){
+                if (state[i][j] == Board.BOX_AT_EMPTY_SPACE){
+                    boxPositions.push([i, j]);
+                } else if (state[i][j] == Board.BOX_AT_VALID_SPACE){
+                    boxPlaced += 1;
+                    boxPositions.push([i, j]);
+                    validPositions.push([i, j]);
+                } else if (state[i][j] == Board.VALID_SPACE){
+                    validPositions.push([i, j]);
                 }
             }
         }
+
+        // scaling the boxPlaced to fit in 1 to 10 range
+        let scaledBoxPlaced = Math.trunc((boxPlaced / boxPositions.length) * 10);
+        if (scaledBoxPlaced != 10) scaledBoxPlaced += 1;
+
+        let averageDistanceSum = 0;
+
+        for (let boxPos of boxPositions){
+            let distSum = 0;
+            for (let validPos of validPositions){
+                distSum += (Math.max(boxPos[0], validPos[0]) - Math.min(boxPos[0], validPos[0]));
+                distSum += (Math.max(boxPos[1], validPos[1]) - Math.min(boxPos[1], validPos[1]));
+            }
+            averageDistanceSum += (distSum / validPositions.length);
+        }
+
+        let averageDistance = averageDistanceSum / boxPositions.length;
+
+        // scaling the distance to fit in 1 to 10 range
+        let maxPossibleDistance = (state.length - 1) + (state[0].length - 1);
+        let scaledAverageDistance = (Math.trunc((averageDistance / maxPossibleDistance) * 10));
+        if (scaledAverageDistance != 10) scaledAverageDistance += 1;
+
+        // inverting the scaledAverageDistance so that 1, 2, ..., 10 get converted to 10, 9, ..., 1
+        scaledAverageDistance = ((scaledAverageDistance - 11) * -1);
+
+        function isAdjecentToEmptyBox(state){
+            let playerPos = Board.findPlayerPosition(state);
+            if (state[playerPos.i + 1][playerPos.j] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i][playerPos.j + 1] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i - 1][playerPos.j] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i][playerPos.j - 1] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i - 1][playerPos.j - 1] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i - 1][playerPos.j + 1] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i + 1][playerPos.j - 1] == Board.BOX_AT_EMPTY_SPACE ||
+                state[playerPos.i + 1][playerPos.j + 1] == Board.BOX_AT_EMPTY_SPACE){
+                    return true
+                }
+            return false;
+        }
+        // going away from unplaced box
+        let awayFromBoxEval;
+        if (isAdjecentToEmptyBox(prevState)){
+            if (isAdjecentToEmptyBox(state)){
+                awayFromBoxEval = 10;
+            } else {
+                awayFromBoxEval = 1;
+            }
+        } else {
+            awayFromBoxEval = 5;
+        }
+
+        evaluation += ((scaledBoxPlaced * boxPlacedWeight) + (scaledAverageDistance * averageDistanceWeight) + (awayFromBoxEval * awayFromBoxWeight));
+
+        // TO BE DONE: changing direction as a hueristic
 
         return evaluation;
     }

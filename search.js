@@ -3,18 +3,20 @@ const levels = require('./levels.js');
 const prompt = require('prompt-sync')({sigint: true});
 
 class Search {
-    static search(board, movesMade, visitedState){
-        board.show();
-        console.log();
+    static search(board, movesMade, visitedState, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight, debug = false){
+        if (debug){
+            board.show();
+            console.log();
+        }
         if (board.isFinalState()) return movesMade;
         if (board.isDeadState()){
-            console.log("dead state detacted");
+            if (debug) console.log("dead state detacted");
             return null;
         }
 
         let hashValue = JSON.stringify(board.state);
         if (visitedState.has(hashValue)){
-            console.log("same position reached");
+            if (debug) console.log("same position reached");
             return null;
         }
         visitedState.add(hashValue);
@@ -27,7 +29,7 @@ class Search {
             boardClone.__proto__ = board.__proto__;
 
             if (boardClone.move(dir)){
-                let evaluation = Search.#evaluate(boardClone.state, board.state, 5, 5, 5);
+                let evaluation = Search.#evaluate(boardClone.state, board.state, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight);
                 possibleMoves.push([evaluation, dir]);
             }
         }
@@ -142,7 +144,9 @@ class Search {
     }
 }
 
-let ans = Search.search(new Board(levels.level2), [], new Set());
+let ans = Search.search(new Board(levels.level4), [], new Set(), 4, 2, 7);
 console.log(ans);
 
-Search.animateMoves(new Board(levels.level2), ans);
+Search.animateMoves(new Board(levels.level4), ans);
+
+module.exports = Search;

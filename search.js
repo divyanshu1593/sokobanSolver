@@ -3,7 +3,7 @@ const levels = require('./levels.js');
 const prompt = require('prompt-sync')({sigint: true});
 
 class Search {
-    static search(board, movesMade, visitedState, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight, debug = false){
+    static search(board, movesMade, visitedState, prevDir, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight, sameDirWeight, debug = false){
         if (debug){
             board.show();
             console.log();
@@ -29,7 +29,9 @@ class Search {
             boardClone.__proto__ = board.__proto__;
 
             if (boardClone.move(dir)){
-                let evaluation = Search.#evaluate(boardClone.state, board.state, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight);
+                let isInSameDir = false;
+                if (dir == prevDir) isInSameDir = true;
+                let evaluation = Search.#evaluate(boardClone.state, board.state, isInSameDir, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight, sameDirWeight);
                 possibleMoves.push([evaluation, dir]);
             }
         }
@@ -44,14 +46,14 @@ class Search {
             let movesMadeClone = movesMade.map(val => val);
             movesMadeClone.push(move[1]);
 
-            let result = Search.search(cloneBoard, movesMadeClone, visitedState);
+            let result = Search.search(cloneBoard, movesMadeClone, visitedState, move[1], boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight, sameDirWeight);
             if (result) return result;
         }
 
         return null;
     }
 
-    static #evaluate(state, prevState, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight){
+    static #evaluate(state, prevState, isInSameDir, boxPlacedWeight, averageDistanceWeight, awayFromBoxWeight, sameDirWeight){
         let evaluation = 0;
         let boxPlaced = 0;
         let boxPositions = [];
@@ -122,9 +124,9 @@ class Search {
             awayFromBoxEval = 5;
         }
 
-        evaluation += ((scaledBoxPlaced * boxPlacedWeight) + (scaledAverageDistance * averageDistanceWeight) + (awayFromBoxEval * awayFromBoxWeight));
+        let sameDirEval = isInSameDir ? 10 : 1;
 
-        // TO BE DONE: changing direction as a hueristic
+        evaluation += ((scaledBoxPlaced * boxPlacedWeight) + (scaledAverageDistance * averageDistanceWeight) + (awayFromBoxEval * awayFromBoxWeight) + (sameDirEval * sameDirWeight));
 
         return evaluation;
     }
@@ -144,9 +146,9 @@ class Search {
     }
 }
 
-let ans = Search.search(new Board(levels.level4), [], new Set(), 4, 2, 7);
-console.log(ans);
+// let ans = Search.search(new Board(levels.level3), [], new Set(), null, 100, 30, 5, 0);
+// console.log(ans);
 
-Search.animateMoves(new Board(levels.level4), ans);
+// Search.animateMoves(new Board(levels.level3), ans);
 
 module.exports = Search;

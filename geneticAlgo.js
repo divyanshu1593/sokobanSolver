@@ -95,29 +95,38 @@ function geneticRound(weights){
     console.log('recombination phase finished');
 
     console.log(`currentBest: ${currentBest[0]} ${currentBest[1]}`);
-    return newGen;
+    return [newGen, currentBest[0], currentBest[1]];
 }
 
 let prevWeights = initWeights;
-fs.appendFile('trainedWeights.txt', "yo", err => {
+fs.writeFileSync('trainedWeights.txt', '', err => {
     console.log(err);
 });
 
 for (let i = 0; i < 100; i++){
-    fs.appendFile('trainedWeights.txt', `Round ${i}:\n\n`, err => {
+    fs.appendFileSync('trainedWeights.txt', `Round ${i}:\n\n`, err => {
         console.log(err);
     });
 
-    let weights = geneticRound(prevWeights);
+    let geneticRoundResult = geneticRound(prevWeights);
+    let weights = geneticRoundResult[0];
     prevWeights = weights;
 
     console.log(weights);
 
-    fs.appendFile('trainedWeights.txt', JSON.stringify(weights), err => {
+    fs.appendFileSync('trainedWeights.txt', `Weights: ${JSON.stringify(weights)}\n`, err => {
         console.log(err);
     });
 
-    fs.appendFile('trainedWeights.txt', '\n\n', err => {
+    fs.appendFileSync('trainedWeights.txt', `Current Best Weight: ${JSON.stringify(geneticRoundResult[1])}\n`, err => {
+        console.log(err);
+    });
+
+    fs.appendFileSync('trainedWeights.txt', `Current Best cost: ${JSON.stringify(geneticRoundResult[2])}\n`, err => {
+        console.log(err);
+    });
+
+    fs.appendFileSync('trainedWeights.txt', '\n\n', err => {
         console.log(err);
     });
 }

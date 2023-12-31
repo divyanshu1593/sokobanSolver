@@ -1,3 +1,4 @@
+const { off } = require('process');
 const Board = require('./board.js');
 const levels = require('./levels.js');
 const Search = require('./search.js');
@@ -74,12 +75,18 @@ function geneticRound(weights){
         }
 
         // random mutation with some probability
-        let r = Math.random();
-        if (r <= probability){
-            let randomIndex = Math.floor(Math.random() * ((offspring.length - 1) + 1));
-            let randomValue = Math.floor(Math.random() * (100 + 1));
-            offspring[randomIndex] = randomValue;
+        function mutate(offspring, probability){
+            let r = Math.random();
+            if (r <= probability){
+                let randomIndex = Math.floor(Math.random() * ((offspring.length - 1) + 1));
+                let randomValue = Math.floor(Math.random() * (100 + 1));
+                offspring[randomIndex] = randomValue;
+                mutate(offspring, probability);
+            }
+            return ;
         }
+
+        mutate(offspring, probability);
 
         return offspring;
     }
@@ -87,8 +94,8 @@ function geneticRound(weights){
     console.log('recombination phase started');
     let newGen = [];
     for (let i = 0; i < weights.length; i++){
-        let offspring1 = makeOffspring(weights[i][0], weights[(i + 1) % weights.length][0], 0.2);
-        let offspring2 = makeOffspring(weights[i][0], weights[(i + 2) % weights.length][0], 0.2);
+        let offspring1 = makeOffspring(weights[i][0], weights[(i + 1) % weights.length][0], 0.5);
+        let offspring2 = makeOffspring(weights[i][0], weights[(i + 2) % weights.length][0], 0.5);
         newGen.push(offspring1);
         newGen.push(offspring2);
     }

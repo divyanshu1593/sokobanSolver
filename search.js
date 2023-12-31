@@ -146,9 +146,9 @@ class Search {
     }
 }
 
-// let ans = Search.search(new Board(levels.level10), [], new Set(), null, 50, 50, 50, 50);
+// let ans = Search.search(new Board(levels.level6), [], new Set(), null, 32, 90, 36, 20);
 // console.log(ans);
 
-// Search.animateMoves(new Board(levels.level10), ans);
+// Search.animateMoves(new Board(levels.level6), ans);
 
 module.exports = Search;
